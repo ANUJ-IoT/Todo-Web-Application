@@ -85,7 +85,6 @@ function Todo() {
 
       const all_res = await getNotes(user);
       setAll(all_res.result || []);
-      console.log(all_res);
       setShort(() => all_res.result.filter((i) => i.cat === "short"));
       setLong(() => all_res.result.filter((i) => i.cat === "long"));
 
@@ -123,10 +122,18 @@ function Todo() {
     }));
   }
 
+  const logoutClean = () => {
+    setUser("");
+    setAll([]);
+    setLong([]);
+    setShort([]);
+    setHistory([]);
+  };
+
   return (
     <>
-      <div className="bg-linear-to-r from-lime-300 via-emerald-200 to-cyan-300 h-screen overflow-hidden font-mono p-5">
-        <div className="bg-linear-to-r from-cyan-300 via-emerald-200 to-lime-300 p-5 h-full rounded-2xl shadow-2xl">
+      <div className="bg-linear-to-r from-lime-300 via-emerald-200 to-cyan-300 font-mono p-5 h-fit">
+        <div className="bg-linear-to-r from-cyan-300 via-emerald-200 to-lime-300 h-fit p-4 rounded-2xl shadow-2xl ">
           <ToastContainer
             position="bottom-right"
             autoClose={5000}
@@ -167,7 +174,7 @@ function Todo() {
                     <div className="absolute -bottom-12 border p-2 rounded-sm bg-white/40 backdrop-blur-2xl shadow-2xl right-10 text-2xl">
                       <div>
                         <button
-                          onClick={() => setUser("")}
+                          onClick={logoutClean}
                           className="px-2 cursor-pointer flex flex-wrap items-center justify-around gap-10 hover:bg-red-500 rounded-sm"
                         >
                           <p>Logout</p>
@@ -184,12 +191,12 @@ function Todo() {
           {/* 
         // *THIS IS THE MAIN BODY 
         */}
-          <div className="flex flex-wrap items-center justify-around mt-20">
+          <div className="flex flex-wrap items-center justify-around mt-20 flex-1 overflow-y-auto">
             {/* 
             // *THIS IS THE CALENDER FORM SHADCN/UI 
           */}
             <div>
-              <div className="font-dynapuff text-5xl my-5">
+              <div className="font-dynapuff text-3xl my-4">
                 <p>{day}</p>
                 <p>{date}</p>
               </div>
@@ -243,36 +250,39 @@ function Todo() {
                 */}
                 <div className="overflow-y-auto mt-5 max-h-150">
                   {all.length === 0 ? (
-                    <div className="flex flex-wrap p-4 items-center justify-between mb-5 border rounded-2xl bg-linear-to-b from-yellow-200 to-yellow-300">
+                    <div className="flex flex-wrap p-4 items-center justify-between mb-5 border rounded-2xl bg-yellow-300 border-yellow-300/70 hover:shadow-lg">
                       <div className="">
-                        <p className="text-2xl w-fit font-bold px-2 rounded-sm bg-gray-400">
+                        <p className="text-2xl w-fit font-bold px-2 rounded-sm text-grey-900">
                           NO NOTES FOUND!
                         </p>
-                        <p className="px-2 bg-gray-400 rounded-sm mt-3">
+                        <p className="px-2 text-slate-700 rounded-sm mt-3">
                           ADD NOTES TO VIEW AND ANALYZE THROUGH THE CHART FOR
                           THE PROGRESS.
                         </p>
-                        <p className="w-fit px-2 bg-gray-400 rounded-sm mt-2">
-                          {date}
-                        </p>
+                        <p className="w-fit px-2  rounded-sm mt-2">{date}</p>
                       </div>
-                      <div className="p-5 cursor-pointer">
-                        <Trash />
-                      </div>
+                      <button className="p-4 cursor-pointer hover:bg-red-500 rounded-2xl">
+                        <Trash className="text-red-700" />
+                      </button>
                     </div>
                   ) : (
                     displayNotes.map((item) => (
                       <div
                         key={item.noteId}
-                        className="flex flex-wrap p-4 items-center justify-between mb-5 border rounded-2xl bg-linear-to-b from-yellow-200 to-yellow-300"
+                        className="flex flex-wrap p-4 items-center justify-between mb-5 border rounded-2xl bg-yellow-300 border-yellow-300/70 hover:shadow-lg"
                       >
                         <div>
                           <p className="text-2xl font-bold">{item.title}</p>
-                          <p className="max-w-170">{item.detail}</p>
+                          <p className="max-w-170 truncate">{item.detail}</p>
                           <p>{item.date}</p>
                         </div>
                         {displayNotes === history ? null : (
-                          <Trash onClick={() => remove(item.noteId)} />
+                          <button className="border border-black rounded-2xl hover:bg-red-500 cursor-pointer p-4">
+                            <Trash
+                              className=""
+                              onClick={() => remove(item.noteId)}
+                            />
+                          </button>
                         )}
                       </div>
                     ))

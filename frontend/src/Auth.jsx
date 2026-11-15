@@ -11,7 +11,7 @@ export default function Auth() {
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [signUpSuccess, setSignUpSuccess] = useState(false);
 
-  const { user, setUser } = useAuth();
+  const { setUser } = useAuth();
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
@@ -19,26 +19,23 @@ export default function Auth() {
 
   async function loginValidate() {
     const res = await login({ name, pass });
+
     if (res.message === "Invalid Credentials.") {
       toast.error("Invalid Credentials.", {
         position: "bottom-right",
         autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: false,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
         theme: "dark",
         transition: Bounce,
       });
     }
+
     if (res.message === "Login Successful") {
       setUser(name);
       setName("");
       setPass("");
       setLoginSuccess(true);
+
       setTimeout(() => {
-        // navigate or close modal after animation
         setLoginSuccess(false);
         navigate(`/${name}`);
       }, 1000);
@@ -47,169 +44,174 @@ export default function Auth() {
 
   async function signupValidate() {
     const res = await register({ name, pass });
+
     if (res.message === "NAME TAKEN") {
       toast.error("THE NAME IS ALREADY TAKEN!", {
         position: "bottom-right",
         autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: false,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
         theme: "dark",
         transition: Bounce,
       });
     }
+
     if (res.message === "Registration Successful") {
       setUser(name);
       setName("");
       setPass("");
       setSignUpSuccess(true);
+
       setTimeout(() => {
-        // navigate or close modal after animation
         setSignUpSuccess(false);
         navigate(`/${name}`);
       }, 1000);
     }
   }
+
+  const isSignup = action === "signup";
+  const isSuccess = isSignup ? signUpSuccess : loginSuccess;
+
   return (
-    <>
-      <div className="bg-orange-300 h-screen overflow-hidden flex items-center justify-center font-mono">
-        <ToastContainer
-          position="bottom-right"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick={false}
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="dark"
-          transition={Bounce}
-        />
-        <div className="realtive shadow-2xl rounded-2xl w-auto mx-auto flex flex-col md:flex-row h-200">
-          <div className="absolute left-50 top-40">
-            <Link to="/">
-              <StepBack className="size-8" />
+    <div className="min-h-screen flex items-center justify-center p-4 md:p-8 bg-orange-300 font-mono">
+      <ToastContainer
+        position="bottom-right"
+        autoClose={5000}
+        closeOnClick={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+        transition={Bounce}
+      />
+
+      {/* Main Authentication Container */}
+
+      <div
+        className="w-full max-w-7xl min-h-200 flex flex-col md:flex-row rounded-2xl overflow-hidden bg-cover bg-center shadow-2xl"
+        style={{ backgroundImage: `url(${background})` }}
+      >
+        {/* LEFT PANEL */}
+
+        <section className="w-full md:w-5/12 p-7 md:p-10 flex flex-col">
+          {/* Back Button */}
+
+          <div className="flex justify-start">
+            <Link
+              to="/"
+              className="p-2 rounded-full hover:bg-white/40 transition-colors"
+            >
+              <StepBack className="size-7" />
             </Link>
           </div>
-          <div
-            className="h-auto w-200 rounded-l-2xl flex flex-wrap items-center justify-center gap-30 flex-col bg-no-repeat bg-cover bg-center"
-            style={{ backgroundImage: `url(${background})` }}
-          >
-            <header>
+
+          {/* Welcome Section */}
+
+          <div className="flex flex-col gap-8 mt-12 md:mt-60">
+            <div>
+              <p className="text-5xl md:text-6xl font-dynapuff">Welcome.</p>
+
+              <p className="mt-3 text-sm text-gray-800">
+                {isSignup
+                  ? "Create an account to get started."
+                  : "Welcome back! Login to continue."}
+              </p>
+            </div>
+
+            {/* Action Selector */}
+
+            <header className="flex items-center gap-3">
               <button
-                className={`${action === "signup" ? "bg-gray-300" : "backdrop-blur-2xl  bg-white/30"} p-3 rounded-2xl mr-10 cursor-pointer  font-bold text-2xl`}
-                value={"signup"}
-                onClick={(e) => setAction(e.target.value)}
+                type="button"
+                onClick={() => setAction("signup")}
+                className={`flex-1 p-3 rounded-xl cursor-pointer font-bold text-lg transition-all duration-200 ${
+                  isSignup
+                    ? "bg-gray-900 text-white shadow-md"
+                    : "bg-white/40 text-gray-800 hover:bg-white/70"
+                }`}
               >
                 Sign Up
               </button>
+
               <button
-                className={`${action === "login" ? "bg-gray-300" : "backdrop-blur-2xl  bg-white/30"} p-3 rounded-2xl cursor-pointer  font-bold text-2xl`}
-                value={"login"}
-                onClick={(e) => setAction(e.target.value)}
+                type="button"
+                onClick={() => setAction("login")}
+                className={`flex-1 p-3 rounded-xl cursor-pointer font-bold text-lg transition-all duration-200 ${
+                  !isSignup
+                    ? "bg-gray-900 text-white shadow-md"
+                    : "bg-white/40 text-gray-800 hover:bg-white/70"
+                }`}
               >
                 Login
               </button>
             </header>
-            <p className="text-5xl font-dynapuff">Welcome.</p>
+          </div>
+        </section>
+
+        {/* RIGHT PANEL */}
+
+        <section className="flex-1 flex flex-col items-center justify-center p-7 md:p-12 gap-8 bg-white/10 backdrop-blur-[2px]">
+          {/* User Icon */}
+
+          <div className="p-5 rounded-3xl bg-amber-500 shadow-lg">
+            <User className="size-14 md:size-16 text-gray-900" />
           </div>
 
-          {action === "signup" ? (
-            <div className="bg-linear-to-r from-orange-100 via-amber-200 to-orange-300 rounded-r-2xl h-full flex flex-wrap items-center justify-center flex-col gap-10 w-200">
-              <div className="p-5 rounded-4xl bg-amber-600">
-                <User className="size-16" />
-              </div>
-              <div>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    signupValidate();
-                  }}
-                >
-                  <input
-                    type="text"
-                    className="border border-black outline-none rounded-sm p-2 w-70 mb-5"
-                    placeholder="Name"
-                    value={name}
-                    required
-                    onChange={(e) => {
-                      setName(e.target.value);
-                    }}
-                  />{" "}
-                  <br />
-                  <input
-                    type="password"
-                    className="border border-black outline-none rounded-sm p-2 w-70"
-                    placeholder="Password"
-                    value={pass}
-                    required
-                    onChange={(e) => {
-                      setPass(e.target.value);
-                    }}
-                  />
-                  <br />
-                  <button
-                    className={`ml-20 mt-10 p-3 rounded-2xl w-30 cursor-pointer transition-all duration-300 ${
-                      signUpSuccess
-                        ? "bg-green-500 scale-110"
-                        : "bg-amber-500 scale-100"
-                    }`}
-                  >
-                    {signUpSuccess ? "✓ Done!" : "Sign Up"}
-                  </button>
-                </form>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-linear-to-r from-orange-100 via-amber-200 to-orange-300 rounded-r-2xl h-full  flex items-center justify-center flex-col px-10 gap-10 w-200">
-              <div className="p-5 rounded-4xl bg-amber-600">
-                <User className="size-16" />
-              </div>
-              <div>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    loginValidate();
-                  }}
-                >
-                  <input
-                    type="text"
-                    className="border border-black outline-none rounded-sm p-2 w-70 mb-5"
-                    placeholder="Name"
-                    value={name}
-                    required
-                    onChange={(e) => {
-                      setName(e.target.value);
-                    }}
-                  />{" "}
-                  <br />
-                  <input
-                    type="password"
-                    className="border border-black outline-none rounded-sm p-2 w-70"
-                    placeholder="Password"
-                    value={pass}
-                    required
-                    onChange={(e) => {
-                      setPass(e.target.value);
-                    }}
-                  />{" "}
-                  <br />
-                  <button
-                    className={`ml-20 mt-10 p-3 rounded-2xl w-30 cursor-pointer transition-all duration-300 ${
-                      loginSuccess ? "bg-green-500 scale-110" : "bg-amber-500"
-                    }`}
-                  >
-                    {loginSuccess ? "✓ Done!" : "Login"}
-                  </button>
-                </form>
-              </div>
-            </div>
-          )}
-        </div>
+          {/* Authentication Form */}
+
+          <form
+            className="w-full max-w-sm flex flex-col gap-5"
+            onSubmit={(e) => {
+              e.preventDefault();
+
+              if (isSignup) {
+                signupValidate();
+              } else {
+                loginValidate();
+              }
+            }}
+          >
+            {/* Username */}
+
+            <label className="flex flex-col gap-2 font-bold text-lg">
+              User Name
+              <input
+                type="text"
+                className="w-full min-w-0 border border-black/50 outline-none rounded-xl p-3 bg-white/60 focus:bg-white focus:ring-2 focus:ring-amber-500 transition-all"
+                placeholder="Enter your name"
+                value={name}
+                required
+                onChange={(e) => setName(e.target.value)}
+              />
+            </label>
+
+            {/* Password */}
+
+            <label className="flex flex-col gap-2 font-bold text-lg">
+              Password
+              <input
+                type="password"
+                className="w-full min-w-0 border border-black/50 outline-none rounded-xl p-3 bg-white/60 focus:bg-white focus:ring-2 focus:ring-amber-500 transition-all"
+                placeholder="Enter your password"
+                value={pass}
+                required
+                onChange={(e) => setPass(e.target.value)}
+              />
+            </label>
+
+            {/* Submit Button */}
+
+            <button
+              type="submit"
+              className={`w-full mt-5 p-3 rounded-xl text-xl font-extrabold cursor-pointer transition-all duration-300 ${
+                isSuccess
+                  ? "bg-green-500 scale-105"
+                  : "bg-amber-500 hover:bg-amber-400 hover:shadow-lg"
+              }`}
+            >
+              {isSuccess ? "✓ Done!" : isSignup ? "Sign Up" : "Login"}
+            </button>
+          </form>
+        </section>
       </div>
-    </>
+    </div>
   );
 }
