@@ -85,7 +85,7 @@ function Todo() {
 
       const all_res = await getNotes(user);
       setAll(all_res.result || []);
-      setShort(() => all_res.result.filter((i) => i.cat === "short"));
+      setShort(() => all_res.result.filter((i) => i.cat === "short" || []));
       setLong(() => all_res.result.filter((i) => i.cat === "long"));
 
       const his_res = await getHistory(user);
@@ -277,7 +277,7 @@ function Todo() {
                           <p>{item.date}</p>
                         </div>
                         {displayNotes === history ? null : (
-                          <button className="border border-black rounded-2xl hover:bg-red-500 cursor-pointer p-4">
+                          <button className="rounded-2xl hover:bg-red-500 cursor-pointer p-4">
                             <Trash
                               className=""
                               onClick={() => remove(item.noteId)}
