@@ -25,3 +25,17 @@ A Todo web application built using React.js, Node.js, Express.js, and MySQL. It 
 ## Overview
 
 The application provides a simple interface for managing daily tasks and monitoring productivity. The dashboard offers a visual representation of task progress, helping users keep track of completed, pending, and failed tasks.
+
+### screenshots
+
+### Login page
+
+![Login page](screenshots/Login.png)
+
+### Visitor's View
+
+![Visitor's View](screenshots/Visitor.png)
+
+### User's View
+
+![User's View](screenshots/Dashboard.png)
