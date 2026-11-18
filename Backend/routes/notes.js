@@ -1,106 +1,149 @@
 import express from "express";
 
-const router = express.Router();
+export function notes(pool) {
+  const router = express.Router();
 
-export function notes(db) {
-  router.get("/:name", (req, res) => {
+  router.get("/:name", async (req, res) => {
     try {
       const name = req.params.name;
-      db.query(
-        "SELECT * FROM notes WHERE id = (SELECT id FROM user WHERE name = ? )",
+
+      const [result] = await pool.execute(
+        "SELECT * FROM notes WHERE id = (SELECT id FROM user WHERE name = ?)",
         [name],
-        (err, result) => {
-          if (err) return res.status(500).json({ message: err.message });
-          if (result.length === 0)
-            return res.status(404).json({ message: "No Notes Found." });
-          return res.status(200).json({ result });
-        },
       );
-    } catch (error) {}
+      return res.status(200).json({ result });
+    } catch (error) {
+      console.error("Fetching notes failed:", error.message);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
   });
 
-  router.get("/all/:name", (req, res) => {
+  router.get("/all/:name", async (req, res) => {
     try {
       const name = req.params.name;
-      db.query(
-        "SELECT * FROM master_notes WHERE id = (SELECT id FROM user WHERE name = ? )",
+
+      const [result] = await pool.execute(
+        "SELECT * FROM master_notes WHERE id = (SELECT id FROM user WHERE name = ?)",
         [name],
-        (err, result) => {
-          if (err) return res.status(500).json({ message: err.message });
-          if (result.length === 0)
-            return res.status(404).json({ message: "No Notes Found." });
-          return res.status(200).json({ result });
-        },
       );
-    } catch (error) {}
+
+      return res.status(200).json({ result });
+    } catch (error) {
+      console.error("Fetching all notes failed:", error.message);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
   });
 
-  router.post("/shortNote", (req, res) => {
+  router.post("/shortNote", async (req, res) => {
+    const { title, detail, name } = req.body;
+
+    let connection;
+
     try {
-      const { title, detail, name } = req.body;
-      db.query("SELECT id FROM user WHERE name = ?", [name], (err, result) => {
-        if (err) return res.status(500).json({ message: err.message });
-        if (result.length === 0)
-          return res.status(404).json({ message: "USER NOT FOUND!" });
+      connection = await pool.getConnection();
 
-        const user_id = result[0].id;
+      await connection.beginTransaction();
 
-        db.query(
-          "INSERT INTO notes (title, detail, id, cat) VALUES (?,?,?, 'short')",
-          [title, detail, user_id],
-          (err, result) => {
-            if (err) return res.status(500).json({ message: err.message });
-            db.query(
-              "INSERT INTO master_notes (title, detail, id , cat) VALUES (?,?,?,'short')",
-              [title, detail, user_id],
-              (err, result) => {
-                if (err) return res.status(500).json({ message: err.message });
-              },
-            );
-            return res.json({ message: "Inserted Successfully" });
-          },
-        );
-      });
-    } catch (error) {}
+      const [users] = await connection.execute(
+        "SELECT id FROM user WHERE name = ?",
+        [name],
+      );
+
+      if (users.length === 0) {
+        await connection.rollback();
+        return res.status(404).json({ message: "USER NOT FOUND!" });
+      }
+
+      const user_id = users[0].id;
+
+      await connection.execute(
+        "INSERT INTO notes (title, detail, id, cat) VALUES (?, ?, ?, 'short')",
+        [title, detail, user_id],
+      );
+
+      await connection.execute(
+        "INSERT INTO master_notes (title, detail, id, cat) VALUES (?, ?, ?, 'short')",
+        [title, detail, user_id],
+      );
+
+      await connection.commit();
+
+      return res.status(201).json({ message: "Inserted Successfully" });
+    } catch (error) {
+      if (connection) await connection.rollback();
+
+      console.error("Short note insertion failed:", error.message);
+      return res.status(500).json({ message: "Internal Server Error" });
+    } finally {
+      if (connection) connection.release();
+    }
   });
 
-  router.post("/longNote", (req, res) => {
+  router.post("/longNote", async (req, res) => {
+    const { name, title, detail } = req.body;
+
+    let connection;
+
     try {
-      const { name, title, detail } = req.body;
-      db.query("SELECT id FROM user WHERE name = ?", [name], (err, result) => {
-        if (err) return res.status(500).json({ message: err.json });
-        if (result.length === 0) {
-          return res.status(400).json({ message: "USER NOT FOUND!" });
-        }
-        const user_id = result[0].id;
+      // CHANGED: Acquire a connection from the pool.
+      connection = await pool.getConnection();
 
-        db.query(
-          "INSERT INTO notes (title, detail, id, cat) VALUES (?,?,?, 'long')",
-          [title, detail, user_id],
-          (err, reslut) => {
-            if (err) return res.status(500).json({ message: err.message });
-            db.query(
-              "INSERT INTO master_notes (title, detail, id , cat) VALUES (?,?,?,'long')",
-              [title, detail, user_id],
-              (err, result) => {
-                if (err) return res.status(500).json({ message: err.message });
-              },
-            );
-            return res.json({ message: "Inserted Successfully" });
-          },
-        );
-      });
-    } catch (error) {}
+      // CHANGED: Start transaction for both INSERT operations.
+      await connection.beginTransaction();
+
+      const [users] = await connection.execute(
+        "SELECT id FROM user WHERE name = ?",
+        [name],
+      );
+
+      if (users.length === 0) {
+        await connection.rollback();
+        return res.status(404).json({ message: "USER NOT FOUND!" });
+      }
+
+      const user_id = users[0].id;
+
+      await connection.execute(
+        "INSERT INTO notes (title, detail, id, cat) VALUES (?, ?, ?, 'long')",
+        [title, detail, user_id],
+      );
+
+      await connection.execute(
+        "INSERT INTO master_notes (title, detail, id, cat) VALUES (?, ?, ?, 'long')",
+        [title, detail, user_id],
+      );
+
+      await connection.commit();
+
+      return res.status(201).json({ message: "Inserted Successfully" });
+    } catch (error) {
+      if (connection) await connection.rollback();
+
+      console.error("Long note insertion failed:", error.message);
+      return res.status(500).json({ message: "Internal Server Error" });
+    } finally {
+      if (connection) connection.release();
+    }
   });
 
-  router.delete("/", (req, res) => {
+  router.delete("/", async (req, res) => {
     try {
       const { id } = req.body;
-      db.query("DELETE FROM notes WHERE noteId = ?", [id], (err, result) => {
-        if (err) return res.status(500).json({ message: err.message });
-        return res.status(200).json({ message: "Deleted Successfully" });
-      });
-    } catch (error) {}
+
+      const [result] = await pool.execute(
+        "DELETE FROM notes WHERE noteId = ?",
+        [id],
+      );
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "Note not found." });
+      }
+
+      return res.status(200).json({ message: "Deleted Successfully" });
+    } catch (error) {
+      console.error("Note deletion failed:", error.message);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
   });
 
   return router;

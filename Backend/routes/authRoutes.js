@@ -1,54 +1,76 @@
 import express from "express";
 import bcrypt from "bcrypt";
 
-const router = express.Router();
+export default function authRoutes(pool) {
+  const router = express.Router();
 
-export default function authRoutes(db) {
-  router.post("/login", (req, res) => {
+  router.post("/login", async (req, res) => {
+    const { name, pass } = req.body;
     try {
-      const { name, pass } = req.body;
-      db.query(
-        "SELECT * FROM user WHERE name = ?",
+      const [row] = await pool.query(
+        "SELECT id, pass FROM user WHERE name = ?",
         [name],
-        async (err, result) => {
-          if (err) return res.status(500).json({ error: err.message });
-          if (result.length === 0) {
-            return res.status(401).json({ message: "Invalid Credentials." });
-          }
-          const isMatch = await bcrypt.compare(pass, result[0].pass);
-          if (!isMatch)
-            return res.status(400).json({ message: "Invalid Credential." });
-          return res.status(200).json({ message: "Login Successful" });
-        },
       );
-    } catch (error) {}
+
+      if (row.length === 0) {
+        return res.status(400).json({ message: "User Not Found." });
+      }
+
+      const isMatch = await bcrypt.compare(pass, row[0].pass);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Invalid Credentials." });
+      }
+
+      return res.status(200).json({ message: "Valid Credentials" });
+    } catch (error) {
+      console.log("The server has failed due to some errors.", error.message);
+      return res.status(500).json({ message: "The server has some error." });
+    }
   });
 
-  // TODO: if the username already exist then invalid
-  router.post("/register", (req, res) => {
+  router.post("/register", async (req, res) => {
+    let connection;
+    const { name, pass } = req.body;
+    let transactionStarted = false;
     try {
-      const { name, pass } = req.body;
-      db.query(
+      const saltForPassword = 10;
+      const hashedPassword = await bcrypt.hash(pass, saltForPassword);
+
+      connection = await pool.getConnection();
+
+      await connection.beginTransaction();
+      transactionStarted = true;
+
+      const [row] = await connection.execute(
         "SELECT id FROM user WHERE name = ?",
         [name],
-        async (err, result) => {
-          if (err) return res.status(501).json({ message: err.message });
-          if (result.length >= 1) {
-            return res.status(400).json({ message: "NAME TAKEN" });
-          }
-          const saltForPassword = 10;
-          const hashedPassword = await bcrypt.hash(pass, saltForPassword);
-          db.query(
-            "INSERT INTO user (name, pass) VALUES (?,?)",
-            [name, hashedPassword],
-            (err, result) => {
-              if (err) return res.status(500).json({ message: err.message });
-              return res.json({ message: "Registration Successful" });
-            },
-          );
-        },
       );
-    } catch (error) {}
+
+      if (row.length >= 1) {
+        await connection.rollback();
+        transactionStarted = false;
+        return res.status(400).json({ message: "User Name already exits." });
+      }
+
+      await connection.execute("INSERT INTO user (name, pass) VALUES (?,?)", [
+        name,
+        hashedPassword,
+      ]);
+
+      await connection.commit();
+      transactionStarted = false;
+      return res.status(201).json({ message: "Registration Successfull." });
+    } catch (error) {
+      if (connection && beginTransaction) await connection.rollback();
+
+      console.log(
+        "The Registration has been failed due to server error.",
+        error.message,
+      );
+      return res.status(500).json({ message: "The server got some error." });
+    } finally {
+      if (connection) connection.release();
+    }
   });
 
   return router;

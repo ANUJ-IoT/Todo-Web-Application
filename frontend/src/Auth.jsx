@@ -17,10 +17,14 @@ export default function Auth() {
   const [name, setName] = useState("");
   const [pass, setPass] = useState("");
 
+  // This is for the login validation
   async function loginValidate() {
     const res = await login({ name, pass });
 
-    if (res.message === "Invalid Credentials.") {
+    if (
+      res.message === "Invalid Credentials." ||
+      res.message === "User Not Found."
+    ) {
       toast.error("Invalid Credentials.", {
         position: "bottom-right",
         autoClose: 5000,
@@ -29,7 +33,7 @@ export default function Auth() {
       });
     }
 
-    if (res.message === "Login Successful") {
+    if (res.message === "Valid Credentials") {
       setUser(name);
       setName("");
       setPass("");
@@ -41,11 +45,11 @@ export default function Auth() {
       }, 1000);
     }
   }
-
+  // This is for the registration
   async function signupValidate() {
     const res = await register({ name, pass });
 
-    if (res.message === "NAME TAKEN") {
+    if (res.message === "User Name already exits.") {
       toast.error("THE NAME IS ALREADY TAKEN!", {
         position: "bottom-right",
         autoClose: 5000,
@@ -54,7 +58,7 @@ export default function Auth() {
       });
     }
 
-    if (res.message === "Registration Successful") {
+    if (res.message === "Registration Successfull.") {
       setUser(name);
       setName("");
       setPass("");

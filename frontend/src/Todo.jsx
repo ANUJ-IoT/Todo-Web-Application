@@ -21,7 +21,7 @@ import { useAuth } from "./context/Context";
 import { deleteNote, getHistory, getNotes } from "./api";
 
 function Todo() {
-  const Navigate = useNavigate();
+  const navigate = useNavigate();
   const { user, setUser, day, date } = useAuth();
 
   const [noteState, setNoteState] = useState("All");
@@ -84,20 +84,21 @@ function Todo() {
       if (!user) return;
 
       const all_res = await getNotes(user);
-      setAll(all_res.result || []);
-      setShort(() => all_res.result.filter((i) => i.cat === "short" || []));
-      setLong(() => all_res.result.filter((i) => i.cat === "long"));
+      const notes = all_res.result;
+      setAll(notes);
+      setShort(() => notes.filter((i) => i.cat === "short"));
+      setLong(() => notes.filter((i) => i.cat === "long"));
 
       const his_res = await getHistory(user);
-      setHistory(his_res.result || []);
+      setHistory(his_res.result);
       setState((prev) => ({
         ...prev,
         initiated: his_res.result.length,
-        ongoing: all.length,
+        ongoing: notes.length,
       }));
     }
     fetchData();
-  }, [user, all.length]);
+  }, [user]);
 
   async function remove(id) {
     const res = await deleteNote(id);
@@ -292,7 +293,7 @@ function Todo() {
               {user && (
                 <button
                   onClick={() => {
-                    Navigate("/note");
+                    navigate("/note");
                   }}
                 >
                   <Plus className="absolute p-3 border bg-amber-600 size-14 rounded-4xl bottom-5 right-6 cursor-pointer animate-bounce" />
