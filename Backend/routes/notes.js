@@ -13,7 +13,6 @@ export function notes(pool) {
       );
       return res.status(200).json({ result });
     } catch (error) {
-      console.error("Fetching notes failed:", error.message);
       return res.status(500).json({ message: "Internal Server Error" });
     }
   });

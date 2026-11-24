@@ -134,7 +134,7 @@ function Todo() {
   return (
     <>
       <div className="bg-linear-to-r from-lime-300 via-emerald-200 to-cyan-300 font-mono p-5 h-fit">
-        <div className="bg-linear-to-r from-cyan-300 via-emerald-200 to-lime-300 h-fit p-4 rounded-2xl shadow-2xl ">
+        <div className="bg-linear-to-r from-from to-to h-fit p-4 rounded-2xl shadow-2xl ">
           <ToastContainer
             position="bottom-right"
             autoClose={5000}
@@ -192,10 +192,10 @@ function Todo() {
           {/* 
         // *THIS IS THE MAIN BODY 
         */}
-          <div className="flex flex-wrap items-center justify-around mt-20 flex-1 overflow-y-auto">
+          <div className="flex flex-wrap items-center justify-around mt-20 flex-1 overflow-y-auto gap-10">
             {/* 
             // *THIS IS THE CALENDER FORM SHADCN/UI 
-          */}
+            */}
             <div>
               <div className="font-dynapuff text-3xl my-4">
                 <p>{day}</p>
@@ -208,8 +208,8 @@ function Todo() {
 
             {/* 
             // *THIS IS THE NOTES BODY
-          */}
-            <div className="bg-white/15 backdrop-blur-xl border border-white/20 min-w-180 rounded-2xl h-180 max-h-300 shadow-2xl relative">
+            */}
+            <div className="bg-white/15 backdrop-blur-xl border border-white/20 w-[70%] min-w-80 max-w-195 rounded-2xl h-180 max-h-300 shadow-2xl relative">
               <div className="p-5">
                 <div className="flex flex-wrap items-center justify-between">
                   <div className="flex flex-wrap items-center gap-2 mb-3 w-fit bg-white/20 rounded-2xl">
@@ -249,18 +249,18 @@ function Todo() {
                 {/* 
                   // *THIS WOULD BE THE NOTES
                 */}
-                <div className="overflow-y-auto mt-5 max-h-150">
+                <div className="overflow-y-auto mt-5 max-h-150 w-full">
                   {all.length === 0 ? (
-                    <div className="flex flex-wrap p-4 items-center justify-between mb-5 border rounded-2xl bg-yellow-300 border-yellow-300/70 hover:shadow-lg">
-                      <div className="">
-                        <p className="text-2xl w-fit font-bold px-2 rounded-sm text-grey-900">
+                    <div className="w-fit flex flex-wrap p-4 items-center justify-between mb-5 rounded-2xl bg-yellow-300 hover:shadow-lg">
+                      <div className="w-fit">
+                        <p className="text-2xl font-bold px-2 rounded-sm text-grey-900">
                           NO NOTES FOUND!
                         </p>
                         <p className="px-2 text-slate-700 rounded-sm mt-3">
                           ADD NOTES TO VIEW AND ANALYZE THROUGH THE CHART FOR
                           THE PROGRESS.
                         </p>
-                        <p className="w-fit px-2  rounded-sm mt-2">{date}</p>
+                        <p className="px-2 rounded-sm mt-2">{date}</p>
                       </div>
                       <button className="p-4 cursor-pointer hover:bg-red-500 rounded-2xl">
                         <Trash className="text-red-700" />
@@ -270,7 +270,7 @@ function Todo() {
                     displayNotes.map((item) => (
                       <div
                         key={item.noteId}
-                        className="flex flex-wrap p-4 items-center justify-between mb-5 border rounded-2xl bg-yellow-300 border-yellow-300/70 hover:shadow-lg"
+                        className="flex flex-wrap p-4 items-center justify-between mb-5 rounded-2xl bg-yellow-300 hover:shadow-lg"
                       >
                         <div>
                           <p className="text-2xl font-bold">{item.title}</p>
@@ -301,8 +301,8 @@ function Todo() {
               )}
             </div>
             {/* 
-          // *THIS IS THE CHART COMPONENT IMPORTED FROM BKLIT UI 
-        */}
+              // *THIS IS THE CHART COMPONENT IMPORTED FROM BKLIT UI 
+            */}
             <div className="bg-coolor w-fit rounded-2xl text-white">
               {user === "" ? (
                 <Link to="/auth">
